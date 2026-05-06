@@ -10,6 +10,8 @@ base:
   train_mode: regression # only support regression now
   missing_rate_eval_test: 0.5   # used for evaluation and testing
   do_validation: true
+  beta: 0.1
+  nce_temp: 0.1
 
 dataset:
   datasetName: mosi
@@ -31,7 +33,7 @@ model:
   tmr: #text-based modality reconstructor
     input_dim_low: 768
     hidden_dim_low: 768
-    input_dim_high: *com_dim
+    input_dim_high: 384
     hidden_dim_high: *com_dim
     dropout: *dropout
 

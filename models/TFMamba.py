@@ -50,6 +50,21 @@ class TFMamba(nn.Module):
             mamba_config=args['model']['tq_mamba']['mamba_config']
         )
 
+        # Replace the existing recon and add these
+        D = args['model']['tc_mamba']['d_model']
+
+        # Attention pooling (separate per modality)
+        self.attn_pool_t = nn.Linear(D, 1)
+        self.attn_pool_a = nn.Linear(D, 1)
+        self.attn_pool_v = nn.Linear(D, 1)
+
+        # Shared projection head for contrastive
+        self.contrastive_proj = nn.Sequential(
+            nn.Linear(D, D),
+            nn.ReLU(),
+            nn.Linear(D, D)
+        )
+
 
         self.pool = nn.AdaptiveMaxPool1d(1)
         self.output = nn.Linear(args['model']['regression']['input_dim'], args['model']['regression']['out_dim'])
@@ -69,6 +84,14 @@ class TFMamba(nn.Module):
         # tc-mamba a v t
         h_tc_mamba_a, h_tc_mamba_v, h_tc_mamba_t = self.text_based_context_mamba(h_tmm_a,h_tmm_v,h_tmm_t)
 
+        def attn_pool(h, pooler):
+            w = torch.softmax(pooler(h), dim=1)  # [B, L, 1]
+            return (w * h).sum(dim=1)            # [B, D]
+
+        t_rep = self.contrastive_proj(attn_pool(h_tc_mamba_t, self.attn_pool_t))
+        a_rep = self.contrastive_proj(attn_pool(h_tc_mamba_a, self.attn_pool_a))
+        v_rep = self.contrastive_proj(attn_pool(h_tc_mamba_v, self.attn_pool_v))
+
         # tq-mamaba
         h_tm_attn = self.text_guided_attention(h_tc_mamba_t,torch.cat([h_tc_mamba_a,h_tc_mamba_v],dim=1))
         h_tm_mamba = self.text_based_query_mamba(h_tm_attn)
@@ -77,18 +100,27 @@ class TFMamba(nn.Module):
         h_m_pool = self.pool(h_tm_mamba.permute(0,2,1)).squeeze(-1)
         output = self.output(h_m_pool)
 
-        rec_text_feats, com_text_feats = None, None
+        t_rep, a_rep, v_rep = None, None, None
         if (vision is not None) and (audio is not None) and (language is not None):
-        #text modal recon
             h_t_o = self.bertmodel(language)
-            text_recon_low = self.recon_text_low(h_tmm_t)
-            rec_text_feats= [text_recon_low]
+            text_recon_low = self.recon_text_low(
+                torch.cat([h_tmm_t, h_tmm_v, h_tmm_a], dim=-1)
+            )
+            rec_text_feats = [text_recon_low]
             com_text_feats = [h_t_o]
+            # contrastive reps only during training
+            t_rep = self.contrastive_proj(attn_pool(h_tc_mamba_t, self.attn_pool_t))
+            a_rep = self.contrastive_proj(attn_pool(h_tc_mamba_a, self.attn_pool_a))
+            v_rep = self.contrastive_proj(attn_pool(h_tc_mamba_v, self.attn_pool_v))
 
-        return {'sentiment_preds': output,
-                'rec_text': rec_text_feats,
-                'complete_text': com_text_feats}
-
+        return {
+            'sentiment_preds': output,
+            'rec_text': rec_text_feats,
+            'complete_text': com_text_feats,
+            'text_rep': t_rep,
+            'audio_rep': a_rep,
+            'video_rep': v_rep,
+        }
 
 
 

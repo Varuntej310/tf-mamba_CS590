@@ -23,3 +23,14 @@ python robust_evaluation.py --config_file configs/eval_sims.yaml > output_sims.t
 
 python robust_evaluation.py --config_file configs/eval_mosi.yaml > output_mosi.txt
 
+
+
+
+
+git rm -r --cached data/
+git commit -m "Initial commit with reproduced code, ignoring data and ckpt"
+git remote set-url origin https://github.com/Varuntej310/tf-mamba_CS590.git
+git branch -M main
+git push -u origin main --force
+
+

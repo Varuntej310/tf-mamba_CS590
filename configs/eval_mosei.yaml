@@ -7,7 +7,7 @@ base:
 
 dataset:
   datasetName: mosei
-  dataPath: /data/MOSEI/Processed/unaligned_50.pkl
+  dataPath: /home/fac/ashok.sairam/TF-Mamba/data/MOSEI/Processed/unaligned_50.pkl
 
 
 model:

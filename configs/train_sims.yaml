@@ -3,9 +3,11 @@ base:
   lr: 0.0001
   weight_decay: 0.0001
   batch_size: 64
-  n_epochs: 200
+  n_epochs: 100
   num_workers: 8
   alpha: 1.0 #重建损失权重
+  beta: 0.1
+  nce_temp: 0.07
   rec_loss: 'SmoothL1Loss' #重建损失权重 L1Loss SmoothL1Loss MSELoss
   train_mode: regression # only support regression now
   missing_rate_eval_test: 0.5   # used for evaluation and testing
@@ -13,7 +15,7 @@ base:
 
 dataset:
   datasetName: sims
-  dataPath: /data/SIMS/Processed/unaligned_39.pkl
+  dataPath: /home/fac/ashok.sairam/TF-Mamba/data/SIMS/Processed/unaligned_39.pkl
 
 
 model:

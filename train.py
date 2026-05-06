@@ -11,7 +11,7 @@ from core.metric import MetricsTop
 import warnings
 warnings.filterwarnings("ignore")
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = '3'
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 print(device)

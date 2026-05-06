@@ -7,7 +7,7 @@ base:
 
 dataset:
   datasetName: sims
-  dataPath: /data/SIMS/Processed/unaligned_39.pkl
+  dataPath: /home/fac/ashok.sairam/TF-Mamba/data/SIMS/Processed/unaligned_39.pkl
 
 
 model:

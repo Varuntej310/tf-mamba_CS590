@@ -1,0 +1,25 @@
+pip install setuptools wheel packaging ninja
+
+which pip
+
+which python
+
+python -m pip install --no-build-isolation git+https://github.com/state-spaces/mamba.git
+
+python -m pip install MMSA -i https://pypi.org/simple
+
+python -m pip install transformers==4.41.2
+
+python - <<EOF
+import MMSA
+print("MMSA working")
+EOF
+
+python train.py --config_file configs/train_sims.yaml
+
+python train.py --config_file configs/train_mosi.yaml
+
+python robust_evaluation.py --config_file configs/eval_sims.yaml > output_sims.txt
+
+python robust_evaluation.py --config_file configs/eval_mosi.yaml > output_mosi.txt
+

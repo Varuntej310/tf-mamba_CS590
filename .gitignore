@@ -1,0 +1,10 @@
+# Ignore all data
+data/
+ckpt/
+log/
+# Ignore all PyTorch model weights
+*.pth
+*.pt
+
+# Keep placeholder files so the folder structure remains in Git
+!*placeholder*

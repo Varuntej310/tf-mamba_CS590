@@ -34,6 +34,19 @@ class TFMamba(nn.Module):
             causal=args['model']['tc_mamba']['causal'],
             mamba_config=args['model']['tc_mamba']['mamba_config']
         )
+        D = args['model']['tc_mamba']['d_model']
+
+        # Attention pooling
+        self.attn_pool_t = nn.Linear(D, 1)
+        self.attn_pool_a = nn.Linear(D, 1)
+        self.attn_pool_v = nn.Linear(D, 1)
+
+        # Projection head
+        self.contrastive_proj = nn.Sequential(
+            nn.Linear(D, D),
+            nn.ReLU(),
+            nn.Linear(D, D)
+        )
         #TQ-Mamba
         self.text_guided_attention = Crossattn(
             num_heads=args['model']['tq_mamba']['attn_heads'],
@@ -69,6 +82,17 @@ class TFMamba(nn.Module):
         # tc-mamba a v t
         h_tc_mamba_a, h_tc_mamba_v, h_tc_mamba_t = self.text_based_context_mamba(h_tmm_a,h_tmm_v,h_tmm_t)
 
+        def attn_pool(h, pooler):
+            w = torch.softmax(pooler(h), dim=1)  # [B, L, 1]
+            return (w * h).sum(dim=1)            # [B, D]
+
+        t_rep, a_rep, v_rep = None, None, None
+
+        if self.training:
+            t_rep = self.contrastive_proj(attn_pool(h_tc_mamba_t, self.attn_pool_t))
+            a_rep = self.contrastive_proj(attn_pool(h_tc_mamba_a, self.attn_pool_a))
+            v_rep = self.contrastive_proj(attn_pool(h_tc_mamba_v, self.attn_pool_v))
+
         # tq-mamaba
         h_tm_attn = self.text_guided_attention(h_tc_mamba_t,torch.cat([h_tc_mamba_a,h_tc_mamba_v],dim=1))
         h_tm_mamba = self.text_based_query_mamba(h_tm_attn)
@@ -87,7 +111,10 @@ class TFMamba(nn.Module):
 
         return {'sentiment_preds': output,
                 'rec_text': rec_text_feats,
-                'complete_text': com_text_feats}
+                'complete_text': com_text_feats,
+                'text_rep': t_rep,
+                'audio_rep': a_rep,
+                'video_rep': v_rep,}
 
 
 

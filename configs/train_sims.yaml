@@ -7,7 +7,7 @@ base:
   num_workers: 8
   alpha: 1.0 #重建损失权重
   beta: 0.1
-  nce_temp: 0.07
+  nce_temp: 0.1
   rec_loss: 'SmoothL1Loss' #重建损失权重 L1Loss SmoothL1Loss MSELoss
   train_mode: regression # only support regression now
   missing_rate_eval_test: 0.5   # used for evaluation and testing

@@ -1,0 +1,61 @@
+cuda
+Namespace(config_file='configs/eval_sims.yaml')
+{'base': {'seed': 1111, 'batch_size': 64, 'num_workers': 8, 'alpha': 1.0, 'train_mode': 'regression'}, 'dataset': {'datasetName': 'sims', 'dataPath': '/home/fac/ashok.sairam/TF-Mamba/data/SIMS/Processed/unaligned_39.pkl'}, 'model': {'com_dim': 128, 'dropout': 0.2, 'feature_extractor': {'bert_pretrained': 'bert-base-chinese'}, 'tmm': {'input_length': [39, 55, 400], 'input_dim': [768, 709, 33], 'hidden_dim': 128}, 'tmr': {'input_dim_low': 768, 'hidden_dim_low': 768, 'input_dim_high': 128, 'hidden_dim_high': 128, 'dropout': 0.2}, 'tc_mamba': {'num_layers': 1, 'd_model': 128, 'd_ffn': 1024, 'activation': 'GELU', 'dropout': 0.2, 'causal': False, 'mamba_config': {'d_state': 16, 'expand': 2, 'd_conv': 4, 'bidirectional': True}}, 'tq_mamba': {'num_layers': 2, 'd_model': 128, 'd_ffn': 1024, 'activation': 'GELU', 'dropout': 0.2, 'causal': False, 'mamba_config': {'d_state': 16, 'expand': 2, 'd_conv': 4, 'bidirectional': True}, 'attn_heads': 8}, 'regression': {'input_dim': 128, 'out_dim': 1}}}
+dropout=0.2 is not used in Mamba.
+dropout=0.2 is not used in Mamba.
+
+=== Mult_acc_2 Metrics Across All Missing Rates ===
+key_eval: Mult_acc_2, missing rate: 0.0, Mult_acc_2_avg: 0.787746170678337, F1_score_avg: 0.7852317815242573
+key_eval: Mult_acc_2, missing rate: 0.1, Mult_acc_2_avg: 0.7789934354485777, F1_score_avg: 0.7743295851930373
+key_eval: Mult_acc_2, missing rate: 0.2, Mult_acc_2_avg: 0.7680525164113785, F1_score_avg: 0.7639566128914561
+key_eval: Mult_acc_2, missing rate: 0.3, Mult_acc_2_avg: 0.75054704595186, F1_score_avg: 0.7294881552659118
+key_eval: Mult_acc_2, missing rate: 0.4, Mult_acc_2_avg: 0.737417943107221, F1_score_avg: 0.7152506897535915
+key_eval: Mult_acc_2, missing rate: 0.5, Mult_acc_2_avg: 0.7439824945295405, F1_score_avg: 0.7120566223005818
+key_eval: Mult_acc_2, missing rate: 0.6, Mult_acc_2_avg: 0.7133479212253829, F1_score_avg: 0.6778164366541428
+key_eval: Mult_acc_2, missing rate: 0.7, Mult_acc_2_avg: 0.700218818380744, F1_score_avg: 0.6612366426429894
+key_eval: Mult_acc_2, missing rate: 0.8, Mult_acc_2_avg: 0.6717724288840262, F1_score_avg: 0.6206378908450675
+key_eval: Mult_acc_2, missing rate: 0.9, Mult_acc_2_avg: 0.6301969365426696, F1_score_avg: 0.5900863705937982
+
+=== Mult_acc_3 Metrics Across All Missing Rates ===
+key_eval: Mult_acc_3, missing rate: 0.0, Mult_acc_3_avg: 0.6280087527352297
+key_eval: Mult_acc_3, missing rate: 0.1, Mult_acc_3_avg: 0.6258205689277899
+key_eval: Mult_acc_3, missing rate: 0.2, Mult_acc_3_avg: 0.6170678336980306
+key_eval: Mult_acc_3, missing rate: 0.3, Mult_acc_3_avg: 0.5973741794310722
+key_eval: Mult_acc_3, missing rate: 0.4, Mult_acc_3_avg: 0.5667396061269147
+key_eval: Mult_acc_3, missing rate: 0.5, Mult_acc_3_avg: 0.5798687089715536
+key_eval: Mult_acc_3, missing rate: 0.6, Mult_acc_3_avg: 0.5120350109409191
+key_eval: Mult_acc_3, missing rate: 0.7, Mult_acc_3_avg: 0.5076586433260394
+key_eval: Mult_acc_3, missing rate: 0.8, Mult_acc_3_avg: 0.4682713347921225
+key_eval: Mult_acc_3, missing rate: 0.9, Mult_acc_3_avg: 0.4638949671772429
+
+=== Mult_acc_5 Metrics Across All Missing Rates ===
+key_eval: Mult_acc_5, missing rate: 0.0, Mult_acc_5_avg: 0.3851203501094092
+key_eval: Mult_acc_5, missing rate: 0.1, Mult_acc_5_avg: 0.38074398249452956
+key_eval: Mult_acc_5, missing rate: 0.2, Mult_acc_5_avg: 0.39606126914660833
+key_eval: Mult_acc_5, missing rate: 0.3, Mult_acc_5_avg: 0.3676148796498906
+key_eval: Mult_acc_5, missing rate: 0.4, Mult_acc_5_avg: 0.3610503282275711
+key_eval: Mult_acc_5, missing rate: 0.5, Mult_acc_5_avg: 0.3479212253829322
+key_eval: Mult_acc_5, missing rate: 0.6, Mult_acc_5_avg: 0.3085339168490153
+key_eval: Mult_acc_5, missing rate: 0.7, Mult_acc_5_avg: 0.28227571115973743
+key_eval: Mult_acc_5, missing rate: 0.8, Mult_acc_5_avg: 0.2735229759299781
+key_eval: Mult_acc_5, missing rate: 0.9, Mult_acc_5_avg: 0.25164113785557984
+
+=== MAE Metrics Across All Missing Rates ===
+key_eval: MAE, missing rate: 0.0, MAE_avg: 0.4472861588001251, Corr_avg: 0.547783813650311
+key_eval: MAE, missing rate: 0.1, MAE_avg: 0.45929649472236633, Corr_avg: 0.5254633781629583
+key_eval: MAE, missing rate: 0.2, MAE_avg: 0.47981977462768555, Corr_avg: 0.46240452412522753
+key_eval: MAE, missing rate: 0.3, MAE_avg: 0.4860863983631134, Corr_avg: 0.45507343086301233
+key_eval: MAE, missing rate: 0.4, MAE_avg: 0.4976271688938141, Corr_avg: 0.43364932588649946
+key_eval: MAE, missing rate: 0.5, MAE_avg: 0.5107710957527161, Corr_avg: 0.4095556720796715
+key_eval: MAE, missing rate: 0.6, MAE_avg: 0.5479159355163574, Corr_avg: 0.30755852851097076
+key_eval: MAE, missing rate: 0.7, MAE_avg: 0.576434850692749, Corr_avg: 0.22477551519257374
+key_eval: MAE, missing rate: 0.8, MAE_avg: 0.6009736657142639, Corr_avg: 0.17735860126331665
+key_eval: MAE, missing rate: 0.9, MAE_avg: 0.6460030674934387, Corr_avg: 0.07039914151331741
+
+=== Average Metrics Across All Missing Rates ===
+Average Mult_acc_2: 0.7392
+Average F1_score: 0.7160
+Average Mult_acc_3: 0.5787
+Average Mult_acc_5: 0.3474
+Average MAE: 0.5152
+Average Corr: 0.3698

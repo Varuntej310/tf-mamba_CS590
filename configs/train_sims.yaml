@@ -1,12 +1,12 @@
 base:
   seed: 1111
   lr: 0.0001
-  weight_decay: 0.0001
+  weight_decay: 0.001
   batch_size: 64
-  n_epochs: 100
+  n_epochs: 150
   num_workers: 8
   alpha: 1.0 #重建损失权重
-  beta: 0.1
+  beta: 0.01
   nce_temp: 0.1
   rec_loss: 'SmoothL1Loss' #重建损失权重 L1Loss SmoothL1Loss MSELoss
   train_mode: regression # only support regression now

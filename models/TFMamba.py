@@ -15,6 +15,20 @@ class TFMamba(nn.Module):
         D_a = args['model']['tmm']['input_dim'][2]  # audio input dim
         D_t = args['model']['tmm']['hidden_dim']    # text hidden dim (post-BERT proj)
 
+        # Modality reliability gates
+        self.gate_a = nn.Sequential(
+            nn.Linear(D, D // 2),
+            nn.ReLU(),
+            nn.Linear(D // 2, 1),
+            nn.Sigmoid()
+        )
+        self.gate_v = nn.Sequential(
+            nn.Linear(D, D // 2),
+            nn.ReLU(),
+            nn.Linear(D // 2, 1),
+            nn.Sigmoid()
+        )
+
         self.missing_embedding_v = nn.Parameter(torch.zeros(1, 1, D_v))
         self.missing_embedding_a = nn.Parameter(torch.zeros(1, 1, D_a))
         self.missing_embedding_t = nn.Parameter(torch.zeros(1, 1, 768))  # BERT dim
@@ -58,6 +72,7 @@ class TFMamba(nn.Module):
         self.contrastive_proj = nn.Sequential(
             nn.Linear(D, D),
             nn.ReLU(),
+            nn.Dropout(0.1),
             nn.Linear(D, D)
         )
         #TQ-Mamba
@@ -80,11 +95,8 @@ class TFMamba(nn.Module):
         self.pool = nn.AdaptiveMaxPool1d(1)
         self.output = nn.Linear(args['model']['regression']['input_dim'], args['model']['regression']['out_dim'])
 
-    def forward(self, complete_input, incomplete_input):
-        vision, audio, language = complete_input
-        vision_m, audio_m, language_m = incomplete_input
 
-        def _apply_missing_embedding(self, x, missing_mask, learned_emb):
+    def _apply_missing_embedding(self, x, missing_mask, learned_emb):
             """
             x: [B, L, D] — corrupted input (zeros where missing)
             missing_mask: [B, L] — 1 where token is PRESENT, 0 where MISSING
@@ -94,6 +106,10 @@ class TFMamba(nn.Module):
             mask = missing_mask.unsqueeze(-1).float()  # [B, L, 1]
             # where mask=1 keep x, where mask=0 use learned embedding
             return x * mask + learned_emb.expand(x.size(0), x.size(1), -1) * (1 - mask)
+
+    def forward(self, complete_input, incomplete_input):
+        vision, audio, language = complete_input
+        vision_m, audio_m, language_m = incomplete_input
 
 
         b = vision_m.size(0)
@@ -132,7 +148,18 @@ class TFMamba(nn.Module):
             v_rep = self.contrastive_proj(attn_pool(h_tc_mamba_v, self.attn_pool_v))
 
         # tq-mamaba
-        h_tm_attn = self.text_guided_attention(h_tc_mamba_t,torch.cat([h_tc_mamba_a,h_tc_mamba_v],dim=1))
+        # h_tm_attn = self.text_guided_attention(h_tc_mamba_t,torch.cat([h_tc_mamba_a,h_tc_mamba_v],dim=1))
+        gate_a = self.gate_a(h_tc_mamba_a)  # [B, L, 1]
+        gate_v = self.gate_v(h_tc_mamba_v)  # [B, L, 1]
+
+        # Gate the representations before fusion
+        h_gated_a = h_tc_mamba_a * gate_a  # [B, L, D]
+        h_gated_v = h_tc_mamba_v * gate_v  # [B, L, D]
+
+        h_tm_attn = self.text_guided_attention(
+            h_tc_mamba_t,
+            torch.cat([h_gated_a, h_gated_v], dim=1)
+        )
         h_tm_mamba = self.text_based_query_mamba(h_tm_attn)
 
         #regression

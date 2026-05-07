@@ -62,8 +62,8 @@ class MMMambaEncoderLayer(nn.Module):
     ):
 
         a_out1, v_out1 = self.mamba(a_x, v_x, a_inference_params, v_inference_params)
-        a_out = a_x + self.norm1(a_out1)
-        v_out = v_x + self.norm2(v_out1)
+        a_out = a_x + self.drop(self.norm1(a_out1))
+        v_out = v_x + self.drop(self.norm2(v_out1))
 
         return a_out, v_out
 

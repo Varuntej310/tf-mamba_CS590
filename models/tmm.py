@@ -43,6 +43,9 @@ class EnhanceSubNet(nn.Module): # text-aware modality enhancement
 
         self.dst_len = seq_len_t
 
+        self.threshold_vt = nn.Parameter(torch.ones(1) * (1.0 / input_length[0]))
+        self.threshold_at = nn.Parameter(torch.ones(1) * (1.0 / input_length[0]))
+
         self.dst_dim = hidden_dim
 
         self.eps = 1e-9 #
@@ -95,13 +98,13 @@ class EnhanceSubNet(nn.Module): # text-aware modality enhancement
         logit_scale_vt = self.logit_scale_vt.exp()
         similarity_matrix_vt = logit_scale_vt * torch.bmm(v_norm, t_norm.permute(0, 2, 1)) #
         logits_vt = similarity_matrix_vt.softmax(dim=-1) #
-        mask_vt = (logits_vt > (1 / self.dst_len)).float() #[B, out_seq_len, out_seq_len]
+        mask_vt = (logits_vt > self.threshold_vt.abs()).float() #[B, out_seq_len, out_seq_len]
 
         # at cosine similarity as logits
         logit_scale_at = self.logit_scale_at.exp()
         similarity_matrix_at = logit_scale_at * torch.bmm(a_norm, t_norm.permute(0, 2, 1)) #
         logits_at = similarity_matrix_at.softmax(dim=-1) #
-        mask_at = (logits_at > (1 / self.dst_len)).float() #[B, out_seq_len, out_seq_len]
+        mask_at = (logits_at > self.threshold_at.abs()).float() #[B, out_seq_len, out_seq_len]
 
         video_out = v_common + torch.bmm(mask_vt*logits_vt, t_common)
         audio_out = a_common + torch.bmm(mask_at*logits_at, t_common)

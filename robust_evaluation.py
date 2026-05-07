@@ -6,7 +6,7 @@ from core.dataset import MMDataEvaluationLoader
 from models.TFMamba import build_model
 from core.metric import MetricsTop
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '3'
+os.environ["CUDA_VISIBLE_DEVICES"] = '5'
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 print(device)
@@ -44,7 +44,7 @@ def main():
                 test_results_list = []
                 for _, cur_seed in enumerate([seed]):
                     best_ckpt = os.path.join(f'ckpt/{dataset_name}/best_{key_eval}_{cur_seed}.pth')
-                    model.load_state_dict(torch.load(best_ckpt)['state_dict'])
+                    model.load_state_dict(torch.load(best_ckpt)['state_dict'], strict=False)
                     args['base']['missing_rate_eval_test'] = cur_r  # Set missing rate
 
                     dataLoader = MMDataEvaluationLoader(args)
@@ -96,7 +96,7 @@ def main():
                 test_results_list = []
                 for _, cur_seed in enumerate([seed]):
                     best_ckpt = os.path.join(f'ckpt/{dataset_name}/best_{key_eval}_{cur_seed}.pth')
-                    model.load_state_dict(torch.load(best_ckpt)['state_dict'])
+                    model.load_state_dict(torch.load(best_ckpt)['state_dict'], strict=False)
                     args['base']['missing_rate_eval_test'] = cur_r  # Set missing rate
 
                     dataLoader = MMDataEvaluationLoader(args)

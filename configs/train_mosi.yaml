@@ -33,7 +33,7 @@ model:
   tmr: #text-based modality reconstructor
     input_dim_low: 768
     hidden_dim_low: 768
-    input_dim_high: 384
+    input_dim_high: *com_dim
     hidden_dim_high: *com_dim
     dropout: *dropout
 

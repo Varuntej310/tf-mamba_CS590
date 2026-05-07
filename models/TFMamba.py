@@ -10,6 +10,19 @@ class TFMamba(nn.Module):
 
         self.bertmodel = BertTextEncoder(use_finetune=True, transformers='bert', pretrained=args['model']['feature_extractor']['bert_pretrained'])
 
+        # Learnable missing token embeddings
+        D_v = args['model']['tmm']['input_dim'][1]  # visual input dim
+        D_a = args['model']['tmm']['input_dim'][2]  # audio input dim
+        D_t = args['model']['tmm']['hidden_dim']    # text hidden dim (post-BERT proj)
+
+        self.missing_embedding_v = nn.Parameter(torch.zeros(1, 1, D_v))
+        self.missing_embedding_a = nn.Parameter(torch.zeros(1, 1, D_a))
+        self.missing_embedding_t = nn.Parameter(torch.zeros(1, 1, 768))  # BERT dim
+
+        # Initialize with small random values, not zeros
+        nn.init.normal_(self.missing_embedding_v, mean=0.0, std=0.02)
+        nn.init.normal_(self.missing_embedding_a, mean=0.0, std=0.02)
+        nn.init.normal_(self.missing_embedding_t, mean=0.0, std=0.02)
 
         #input seq t a v
         # TME
@@ -71,11 +84,36 @@ class TFMamba(nn.Module):
         vision, audio, language = complete_input
         vision_m, audio_m, language_m = incomplete_input
 
+        def _apply_missing_embedding(self, x, missing_mask, learned_emb):
+            """
+            x: [B, L, D] — corrupted input (zeros where missing)
+            missing_mask: [B, L] — 1 where token is PRESENT, 0 where MISSING
+            learned_emb: [1, 1, D] — learnable missing token
+            returns: [B, L, D] — zeros replaced with learned embedding
+            """
+            mask = missing_mask.unsqueeze(-1).float()  # [B, L, 1]
+            # where mask=1 keep x, where mask=0 use learned embedding
+            return x * mask + learned_emb.expand(x.size(0), x.size(1), -1) * (1 - mask)
+
+
         b = vision_m.size(0)
 
-        h_0_v = vision_m
-        h_0_a = audio_m
-        h_0_t = self.bertmodel(language_m)
+        # Get vision missing mask: where all features are zero = missing
+        # vision_m is [B, L, D_v], zeros where missing
+        v_missing_mask = (vision_m.abs().sum(dim=-1) > 1e-6).float()  # [B, L]
+        a_missing_mask = (audio_m.abs().sum(dim=-1) > 1e-6).float()   # [B, L]
+
+        h_0_v = self._apply_missing_embedding(vision_m, v_missing_mask, self.missing_embedding_v)
+        h_0_a = self._apply_missing_embedding(audio_m, a_missing_mask, self.missing_embedding_a)
+
+        # For text: BERT output, then replace [UNK] positions with learned embedding
+        h_0_t_raw = self.bertmodel(language_m)  # [B, L, 768]
+        # text_missing_mask from dataset: 1 where present, 0 where [UNK] was inserted
+        # We don't have direct access here, so detect via language_m input_ids
+        # input_ids are in language_m[:, 0, :], UNK token id = 100
+        text_input_ids = language_m[:, 0, :].long()  # [B, L]
+        t_missing_mask = (text_input_ids != 100).float()  # [B, L], 0 where UNK
+        h_0_t = self._apply_missing_embedding(h_0_t_raw, t_missing_mask, self.missing_embedding_t)
         # text-aware mixup #t v a
         h_tmm_t, h_tmm_v, h_tmm_a = self.text_modality_mixup(h_0_t,h_0_v,h_0_a)
 

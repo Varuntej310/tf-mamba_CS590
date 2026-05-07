@@ -19,7 +19,7 @@ class TFMamba(nn.Module):
             hidden_dim=args['model']['tmm']['hidden_dim'])
         # feature reconstruction
         self.recon_text_low = nn.Sequential(
-            nn.Linear(args['model']['tmr']['input_dim_high'], args['model']['tmr']['input_dim_high']),
+            nn.Linear(args['model']['tmr']['input_dim_high'] * 3, args['model']['tmr']['input_dim_high']),
             nn.ReLU(),
             nn.Dropout(args['model']['tmr']['dropout']),
             nn.Linear(args['model']['tmr']['input_dim_high'], args['model']['tmr']['input_dim_low'])
@@ -81,7 +81,7 @@ class TFMamba(nn.Module):
         if (vision is not None) and (audio is not None) and (language is not None):
         #text modal recon
             h_t_o = self.bertmodel(language)
-            text_recon_low = self.recon_text_low(h_tmm_t)
+            text_recon_low = self.recon_text_low(torch.cat([h_tmm_t, h_tmm_v, h_tmm_a], dim=-1))
             rec_text_feats= [text_recon_low]
             com_text_feats = [h_t_o]
 
